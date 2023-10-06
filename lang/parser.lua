@@ -55,7 +55,6 @@ function parser:parseValueList()
   local v = self:parseValue()
   while v do
     table.insert(values, v)
-    print(v.type, v.value)
     v = self:parseValue()
   end
 
