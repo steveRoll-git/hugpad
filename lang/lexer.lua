@@ -1,6 +1,8 @@
 ---@class Lexer
 ---@field code string
 ---@field index number
+---@field column number
+---@field line number
 ---@field finished boolean
 local lexer = {}
 lexer.__index = lexer
@@ -9,12 +11,23 @@ function lexer.new(code)
   return setmetatable({
     code = code,
     index = 1,
+    column = 1,
+    line = 1,
     finished = false,
   }, lexer)
 end
 
 function lexer:advance(count)
-  self.index = self.index + (count or 1)
+  count = count or 1
+  for i = 1, count do
+    self.index = self.index + 1
+    if self:curChar() == "\n" then
+      self.line = self.line + 1
+      self.column = 0
+    else
+      self.column = self.column + 1
+    end
+  end
   self.finished = self.index > #self.code
 end
 
