@@ -6,6 +6,7 @@ local builtins = {
   compose = {
     type = "function",
     minArgs = 0,
+    argTypes = { "composition" },
     returnType = "composition",
     dontEvaluateLuaArgs = true,
     func = function(args)
@@ -72,7 +73,7 @@ for operator, func in pairs(mathOps) do
     minArgs = 1,
     argTypes = { "number" },
     returnType = "number",
-    func = function (args)
+    func = function(args)
       return func(args[1], args[2])
     end,
   }
@@ -123,7 +124,7 @@ local function eval(value, scope)
         local expectedType = func.argTypes[i] or func.argTypes[#func.argTypes]
         if valueType ~= expectedType then
           error(
-          ("argument #%d of %q expected to be of type %q, but got %q"):format(i, func.name, expectedType, valueType), 0)
+            ("argument #%d of %q expected to be of type %q, but got %q"):format(i, func.name, expectedType, valueType), 0)
         end
         args[i] = v
       end
