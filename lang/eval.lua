@@ -25,8 +25,8 @@ local builtins = {
     maxArgs = 4,
     argTypes = { "number", "number", "number", "number" },
     returnType = "composition",
-    func = function(r, g, b, a)
-      love.graphics.setColor(r, g, b, a or 1)
+    func = function(args)
+      love.graphics.setColor(args)
     end
   },
 
@@ -35,8 +35,8 @@ local builtins = {
     numArgs = 2,
     argTypes = { "number", "number" },
     returnType = "composition",
-    func = function(x, y)
-      love.graphics.translate(x, y)
+    func = function(args)
+      love.graphics.translate(args[1], args[2])
     end
   },
 
@@ -45,8 +45,8 @@ local builtins = {
     numArgs = 3,
     argTypes = { "number", "number", "number" },
     returnType = "composition",
-    func = function(x, y, r)
-      love.graphics.circle("fill", x, y, r)
+    func = function(args)
+      love.graphics.circle("fill", args[1], args[2], args[3])
     end
   }
 }
@@ -72,7 +72,9 @@ for operator, func in pairs(mathOps) do
     minArgs = 1,
     argTypes = { "number" },
     returnType = "number",
-    func = func,
+    func = function (args)
+      return func(args[1], args[2])
+    end,
   }
 end
 
@@ -177,7 +179,7 @@ luaEvalRun = function(value)
       for i, v in ipairs(value.args) do
         evaledArgs[i] = luaEvalRun(v)
       end
-      return value.func.func(unpack(evaledArgs))
+      return value.func.func(evaledArgs)
     end
   end
 
