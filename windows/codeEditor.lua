@@ -94,11 +94,10 @@ end
 
 function codeEditor:activity()
   self.lastActivityTime = love.timer.getTime()
-  if self.syntaxUnderline then
-    self.editor.underlines:remove(self.syntaxUnderline)
-    self.syntaxUnderline = nil
+
+  if self.onActivity then
+    self.onActivity()
   end
-  self.didCheck = false
 end
 
 function codeEditor:resize(width, height, prevWidth, prevHeight)
@@ -157,7 +156,9 @@ end
 function codeEditor:keypressed(key)
   self.editor:keypressed(key)
   self:updateScrollbars()
-  self:activity()
+  if key == "return" or key == "backspace" or (love.keyboard.isDown("lctrl", "rctrl") and (key == "x" or key == "c" or key == "v")) then
+    self:activity()
+  end
 end
 
 function codeEditor:textinput(t)

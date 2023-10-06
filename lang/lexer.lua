@@ -13,7 +13,7 @@ function lexer.new(code)
     index = 1,
     column = 1,
     line = 1,
-    finished = false,
+    finished = #code == 0,
   }, lexer)
 end
 
