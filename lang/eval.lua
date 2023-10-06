@@ -74,7 +74,7 @@ end
 local function eval(value, scope)
   if value.type == "name" then
     if not scope[value.value] then
-      error(("name %q not found"):format(value.value))
+      error(("name %q not found"):format(value.value), 0)
     end
     return scope[value.value]
   end
@@ -100,7 +100,7 @@ local function eval(value, scope)
             ("betweed %d and %d"):format(func.minArgs, func.maxArgs) or
             ("%d or more"):format(func.minArgs)
           ),
-          numArgs))
+          numArgs), 0)
       end
 
       local args = {}
@@ -109,7 +109,8 @@ local function eval(value, scope)
         local valueType = v.type == "call" and v.func.returnType or v.type
         local expectedType = func.argTypes[i] or func.argTypes[#func.argTypes]
         if valueType ~= expectedType then
-          error(("argument #%d of %q expected to be of type %q, but got %q"):format(i, func.name, expectedType, valueType))
+          error(
+          ("argument #%d of %q expected to be of type %q, but got %q"):format(i, func.name, expectedType, valueType), 0)
         end
         args[i] = v
       end
@@ -120,7 +121,7 @@ local function eval(value, scope)
         args = args
       }
     else
-      error(("value of type %q cannot be called"):format(calledValue.type))
+      error(("value of type %q cannot be called"):format(calledValue.type), 0)
     end
   end
 
@@ -149,6 +150,10 @@ end
 
 -- evaluates an expression and runs it
 luaEvalRun = function(value)
+  if value.type == "nil" then
+    return nil
+  end
+
   if value.type == "number" then
     return value.value
   end

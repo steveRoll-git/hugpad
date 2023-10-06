@@ -3,6 +3,7 @@ local lg = love.graphics
 
 local eval = require "lang.eval"
 local parser = require "lang.parser"
+local codeEditor = require "windows.codeEditor"
 
 love.keyboard.setKeyRepeat(true)
 
@@ -12,25 +13,31 @@ function SetCursor(cursor)
   nextCursor = cursor
 end
 
-local codeEditor = require "windows.codeEditor"
+local errorBoxHeight = 48
+local errorFont = lg.getFont()
 
 local editor = codeEditor.new()
 editor.windowWidth = love.graphics.getWidth() / 2
-editor.windowHeight = love.graphics.getHeight()
+editor.windowHeight = love.graphics.getHeight() - errorBoxHeight
 editor:resize(editor.windowWidth, editor.windowHeight)
 
 local compiledComposition
+local compilationError
 
 local function compileComposition()
+  compilationError = nil
   local code = editor.editor:getString()
   local p = parser.new(code)
   local succ, tree = pcall(parser.parseValueList, p)
   if not succ then
+    compilationError = tree
     return
   end
   local succ, c = pcall(eval.evalFile, tree)
   if succ then
     compiledComposition = c
+  else
+    compilationError = c
   end
 end
 
@@ -73,6 +80,24 @@ end
 
 function love.draw()
   editor:draw()
+
+  if compilationError then
+    local margin = 6
+    lg.push()
+    lg.translate(0, editor.windowHeight)
+    lg.setColor(0.6, 0.1, 0.1)
+    lg.rectangle("fill", 0, 0, editor.windowWidth, errorBoxHeight)
+    lg.setColor(1, 1, 1)
+    local _, t = errorFont:getWrap(compilationError, editor.windowWidth - margin * 2)
+    lg.setFont(errorFont)
+    for i, l in ipairs(t) do
+      lg.print(l, margin, errorBoxHeight / 2 - #t * errorFont:getHeight() / 2 + (i - 1) * errorFont:getHeight())
+    end
+    lg.pop()
+  end
+
+  lg.setColor(1, 1, 1)
+  lg.line(editor.windowWidth, 0, editor.windowWidth, lg.getHeight())
 
   if compiledComposition then
     lg.push()

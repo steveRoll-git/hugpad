@@ -23,7 +23,7 @@ end
 
 function parser:expect(type)
   if self.curToken.type ~= type then
-    error(("expected %s, got %s"):format(type, self.curToken.type))
+    error(("expected %s, got %s"):format(type, self.curToken.type), 0)
   end
   self:nextToken()
 end
