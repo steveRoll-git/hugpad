@@ -19,6 +19,17 @@ local builtins = {
     end
   },
 
+  color = {
+    type = "function",
+    minArgs = 3,
+    maxArgs = 4,
+    argTypes = { "number", "number", "number", "number" },
+    returnType = "composition",
+    func = function(r, g, b, a)
+      love.graphics.setColor(r, g, b, a or 1)
+    end
+  },
+
   translate = {
     type = "function",
     numArgs = 2,
