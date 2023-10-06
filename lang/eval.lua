@@ -9,7 +9,7 @@ local builtins = {
     returnType = "composition",
     dontEvaluateLuaArgs = true,
     func = function(args)
-      love.graphics.push()
+      love.graphics.push("all")
 
       for _, a in ipairs(args) do
         luaEvalRun(a)
