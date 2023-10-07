@@ -1,6 +1,37 @@
 local shallowCopy = require "util.shallowCopy"
 
-local luaEvalRun
+-- evaluates an expression and runs it
+local function luaEvalRun(value)
+  if value.type == "nil" then
+    return nil
+  end
+
+  if value.type == "number" then
+    return value.value
+  end
+
+  if value.type == "call" then
+    if value.func.dontEvaluateLuaArgs then
+      return value.func.func(value.args)
+    else
+      local evaledArgs = {}
+      for i, v in ipairs(value.args) do
+        evaledArgs[i] = luaEvalRun(v)
+      end
+      return value.func.func(evaledArgs)
+    end
+  end
+
+  if value.type == "variable" then
+    return value.func()
+  end
+
+  if value.type == "list" then
+    return value.value
+  end
+
+  error(("can't evaluate value of type %q"):format(value.type))
+end
 
 local builtins = {
   compose = {
@@ -49,6 +80,14 @@ local builtins = {
     func = function(args)
       love.graphics.circle("fill", args[1], args[2], args[3])
     end
+  },
+
+  time = {
+    type = "variable",
+    varType = "number",
+    func = function()
+      return love.timer.getTime()
+    end
   }
 }
 
@@ -89,6 +128,17 @@ for name, func in pairs(builtins) do
   end
 end
 
+-- returns the actual type of the value that this expression gives
+local function getValueType(value)
+  if value.type == "call" then
+    return value.func.returnType
+  end
+  if value.type == "variable" then
+    return value.varType
+  end
+  return value.type
+end
+
 local function eval(value, scope)
   if value.type == "name" then
     if not scope[value.value] then
@@ -105,7 +155,8 @@ local function eval(value, scope)
     end
 
     local calledValue = eval(list[1], scope)
-    if calledValue.type == "function" then
+    local calledType = getValueType(calledValue)
+    if calledType == "function" then
       local func = calledValue
 
       local numArgs = #list - 1
@@ -124,7 +175,7 @@ local function eval(value, scope)
       local args = {}
       for i = 1, numArgs do
         local v = eval(list[i + 1], scope)
-        local valueType = v.type == "call" and v.func.returnType or v.type
+        local valueType = getValueType(v)
         local expectedType = func.argTypes[i] or func.argTypes[#func.argTypes]
         if valueType ~= expectedType then
           error(
@@ -139,7 +190,7 @@ local function eval(value, scope)
         args = args
       }
     else
-      error(("value of type %q cannot be called"):format(calledValue.type), 0)
+      error(("value of type %q cannot be called"):format(calledType), 0)
     end
   end
 
@@ -164,35 +215,6 @@ local function evalFile(tree)
     func = builtins.compose,
     args = values
   }
-end
-
--- evaluates an expression and runs it
-luaEvalRun = function(value)
-  if value.type == "nil" then
-    return nil
-  end
-
-  if value.type == "number" then
-    return value.value
-  end
-
-  if value.type == "call" then
-    if value.func.dontEvaluateLuaArgs then
-      return value.func.func(value.args)
-    else
-      local evaledArgs = {}
-      for i, v in ipairs(value.args) do
-        evaledArgs[i] = luaEvalRun(v)
-      end
-      return value.func.func(evaledArgs)
-    end
-  end
-
-  if value.type == "list" then
-    return value.value
-  end
-
-  error(("can't evaluate value of type %q"):format(value.type))
 end
 
 return {
