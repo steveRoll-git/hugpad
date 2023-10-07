@@ -74,7 +74,11 @@ for operator, func in pairs(mathOps) do
     argTypes = { "number" },
     returnType = "number",
     func = function(args)
-      return func(args[1], args[2])
+      local total = args[1]
+      for i = 2, #args do
+        total = func(total, args[i])
+      end
+      return total
     end,
   }
 end
