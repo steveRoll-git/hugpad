@@ -88,7 +88,27 @@ local builtins = {
     func = function()
       return love.timer.getTime()
     end
-  }
+  },
+
+  sin = {
+    type = "function",
+    numArgs = 1,
+    argTypes = { "number" },
+    returnType = "number",
+    func = function(args)
+      return math.sin(args[1])
+    end
+  },
+
+  cos = {
+    type = "function",
+    numArgs = 1,
+    argTypes = { "number" },
+    returnType = "number",
+    func = function(args)
+      return math.cos(args[1])
+    end
+  },
 }
 
 local mathOps = {
