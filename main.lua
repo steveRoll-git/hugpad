@@ -78,6 +78,12 @@ function love.textinput(t)
   editor:textinput(t)
 end
 
+function love.resize(w, h)
+  editor.windowWidth = love.graphics.getWidth() / 2
+  editor.windowHeight = love.graphics.getHeight() - errorBoxHeight
+  editor:resize(editor.windowWidth, editor.windowHeight)
+end
+
 function love.draw()
   editor:draw()
 
