@@ -3,6 +3,8 @@ local lg = love.graphics
 
 local eval = require "lang.eval"
 local parser = require "lang.parser"
+local builtins = require "lang.builtins"
+local shallowCopy = require "util.shallowCopy"
 local codeEditor = require "windows.codeEditor"
 
 love.keyboard.setKeyRepeat(true)
@@ -24,6 +26,26 @@ editor:resize(editor.windowWidth, editor.windowHeight)
 local compiledComposition
 local compilationError
 
+local function evalFile(tree)
+  if tree.type ~= "list" then
+    error("the value of a file should be a list")
+  end
+
+  local scope = shallowCopy(builtins)
+
+  local values = {}
+
+  for i, value in ipairs(tree.value) do
+    values[i] = eval.eval(value, scope)
+  end
+
+  return {
+    type = "call",
+    func = builtins.compose,
+    args = values
+  }
+end
+
 local function compileComposition()
   compilationError = nil
   local code = editor.editor:getString()
@@ -33,7 +55,7 @@ local function compileComposition()
     compilationError = tree
     return
   end
-  local succ, c = pcall(eval.evalFile, tree)
+  local succ, c = pcall(evalFile, tree)
   if succ then
     compiledComposition = c
   else
