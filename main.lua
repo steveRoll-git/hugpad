@@ -63,6 +63,32 @@ local function compileComposition()
   end
 end
 
+local compositionActions = {}
+
+local function runComposition(c)
+  compositionActions[c.action](c)
+end
+
+function compositionActions:compose()
+  lg.push()
+  for _, c in ipairs(self.body) do
+    runComposition(c)
+  end
+  lg.pop()
+end
+
+function compositionActions:setColor()
+  lg.setColor(self.color)
+end
+
+function compositionActions:translate()
+  lg.translate(self.x, self.y)
+end
+
+function compositionActions:circle()
+  lg.circle(self.drawMode, self.x, self.y, self.radius)
+end
+
 editor.onActivity = function()
   compileComposition()
 end
@@ -132,7 +158,8 @@ function love.draw()
     lg.translate(editor.windowWidth, 0)
     lg.setScissor(editor.windowWidth, 0, lg.getWidth() - editor.windowWidth, lg.getHeight())
     lg.setColor(1, 1, 1)
-    eval.luaEvalRun(compiledComposition)
+    local comp = eval.luaEvalRun(compiledComposition)
+    runComposition(comp)
     lg.setScissor()
     lg.pop()
   end

@@ -8,15 +8,11 @@ local builtins = {
     minArgs = 0,
     argTypes = { "composition" },
     returnType = "composition",
-    dontEvaluateLuaArgs = true,
-    func = function(args)
-      love.graphics.push("all")
-
-      for _, a in ipairs(args) do
-        luaEvalRun(a)
-      end
-
-      love.graphics.pop()
+    runtimeFunc = function(args)
+      return {
+        action = "compose",
+        body = args
+      }
     end
   },
 
@@ -26,8 +22,11 @@ local builtins = {
     maxArgs = 4,
     argTypes = { "number", "number", "number", "number" },
     returnType = "composition",
-    func = function(args)
-      love.graphics.setColor(args)
+    runtimeFunc = function(args)
+      return {
+        action = "setColor",
+        color = args
+      }
     end
   },
 
@@ -36,8 +35,12 @@ local builtins = {
     numArgs = 2,
     argTypes = { "number", "number" },
     returnType = "composition",
-    func = function(args)
-      love.graphics.translate(args[1], args[2])
+    runtimeFunc = function(args)
+      return {
+        action = "translate",
+        x = args[1],
+        y = args[2]
+      }
     end
   },
 
@@ -46,8 +49,14 @@ local builtins = {
     numArgs = 3,
     argTypes = { "number", "number", "number" },
     returnType = "composition",
-    func = function(args)
-      love.graphics.circle("fill", args[1], args[2], args[3])
+    runtimeFunc = function(args)
+      return {
+        action = "circle",
+        drawMode = "fill",
+        x = args[1],
+        y = args[2],
+        radius = args[3],
+      }
     end
   },
 
