@@ -21,7 +21,7 @@ local function luaEvalRun(value)
   end
 
   if value.type == "variable" then
-    return value.func()
+    return value.runtimeFunc()
   end
 
   if value.type == "list" then

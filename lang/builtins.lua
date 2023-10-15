@@ -63,7 +63,7 @@ local builtins = {
   time = {
     type = "variable",
     varType = "number",
-    func = function()
+    runtimeFunc = function()
       return love.timer.getTime()
     end
   },
@@ -73,7 +73,7 @@ local builtins = {
     numArgs = 1,
     argTypes = { "number" },
     returnType = "number",
-    func = function(args)
+    runtimeFunc = function(args)
       return math.sin(args[1])
     end
   },
@@ -83,7 +83,7 @@ local builtins = {
     numArgs = 1,
     argTypes = { "number" },
     returnType = "number",
-    func = function(args)
+    runtimeFunc = function(args)
       return math.cos(args[1])
     end
   },
@@ -110,7 +110,7 @@ for operator, func in pairs(mathOps) do
     minArgs = 1,
     argTypes = { "number" },
     returnType = "number",
-    func = function(args)
+    runtimeFunc = function(args)
       local total = args[1]
       for i = 2, #args do
         total = func(total, args[i])
