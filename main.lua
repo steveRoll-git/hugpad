@@ -31,19 +31,14 @@ local function evalFile(tree)
     error("the value of a file should be a list")
   end
 
+  tree = {
+    type = "list",
+    value = { { type = "name", value = "compose" }, unpack(tree.value) }
+  }
+
   local scope = shallowCopy(builtins)
 
-  local values = {}
-
-  for i, value in ipairs(tree.value) do
-    values[i] = eval.eval(value, scope)
-  end
-
-  return {
-    type = "call",
-    func = builtins.compose,
-    args = values
-  }
+  return eval.eval(tree, scope)
 end
 
 local function compileComposition()
