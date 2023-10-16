@@ -32,6 +32,9 @@ function parser:parseValue()
   local t = self.curToken
 
   if t.type == "number" then
+    if t.value == nil then
+      error("malformed number", 0)
+    end
     self:nextToken()
     return { type = "number", value = t.value }
   end
