@@ -45,16 +45,16 @@ local function compileComposition()
   compilationError = nil
   local code = editor.editor:getString()
   local p = parser.new(code)
-  local succ, tree = pcall(parser.parseValueList, p)
+  local succ, result = pcall(parser.parseValueList, p)
   if not succ then
-    compilationError = tree
+    compilationError = result
     return
   end
-  local succ, c = pcall(evalFile, tree)
+  local succ, result = pcall(evalFile, result)
   if succ then
-    compiledComposition = c
+    compiledComposition = result
   else
-    compilationError = c
+    compilationError = result
   end
 end
 
@@ -137,7 +137,7 @@ function love.draw()
     lg.setColor(0.6, 0.1, 0.1)
     lg.rectangle("fill", 0, 0, editor.windowWidth, errorBoxHeight)
     lg.setColor(1, 1, 1)
-    local _, t = errorFont:getWrap(compilationError, editor.windowWidth - margin * 2)
+    local _, t = errorFont:getWrap(compilationError.message, editor.windowWidth - margin * 2)
     lg.setFont(errorFont)
     for i, l in ipairs(t) do
       lg.print(l, margin, errorBoxHeight / 2 - #t * errorFont:getHeight() / 2 + (i - 1) * errorFont:getHeight())

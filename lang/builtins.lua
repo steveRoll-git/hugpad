@@ -9,7 +9,9 @@ local builtins = {
     numArgs = 2,
     func = function(args, scope)
       if args[1].type ~= "list" then
-        error('first parameter of "let" must be a list of variable declarations')
+        error {
+          message = 'first parameter of "let" must be a list of variable declarations'
+        }
       end
 
       local varList = args[1].value
@@ -18,7 +20,9 @@ local builtins = {
 
       for _, var in ipairs(varList) do
         if var.type ~= "list" or #var.value ~= 2 or var.value[1].type ~= "name" then
-          error('variable declarations in "let" must be lists with a name and value')
+          error {
+            message = 'variable declarations in "let" must be lists with a name and value'
+          }
         end
         local varName = var.value[1].value
         local varValue = eval(var.value[2], scope)
@@ -48,14 +52,18 @@ local builtins = {
       local condition = eval(args[1], scope)
       local t = getValueType(condition)
       if t ~= "boolean" then
-        error(('"if" condition must be of type "boolean", but it was %q'):format(t))
+        error {
+          message = ('"if" condition must be of type "boolean", but it was %q'):format(t)
+        }
       end
       local trueBody = eval(args[2], scope)
       local trueT = getValueType(trueBody)
       local falseBody = eval(args[3], scope)
       local falseT = getValueType(falseBody)
       if trueT ~= falseT then
-        error(('"if" return types must match (got %q and %q)'):format(trueT, falseT))
+        error {
+          message = ('"if" return types must match (got %q and %q)'):format(trueT, falseT)
+        }
       end
       return {
         type = "if",

@@ -23,7 +23,9 @@ end
 
 function parser:expect(type)
   if self.curToken.type ~= type then
-    error(("expected %s, got %s"):format(type, self.curToken.type), 0)
+    error {
+      message = ("expected %s, got %s"):format(type, self.curToken.type)
+    }
   end
   self:nextToken()
 end
@@ -33,7 +35,9 @@ function parser:parseValue()
 
   if t.type == "number" then
     if t.value == nil then
-      error("malformed number", 0)
+      error {
+        message = "malformed number"
+      }
     end
     self:nextToken()
     return { type = "number", value = t.value }

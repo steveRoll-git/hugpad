@@ -52,7 +52,9 @@ local function luaEvalRun(value, scope)
     end
   end
 
-  error(("can't evaluate value of type %q"):format(value.type))
+  error {
+    ("can't evaluate value of type %q"):format(value.type)
+  }
 end
 
 -- returns the actual type of the value that this expression gives
@@ -75,7 +77,9 @@ end
 local function eval(value, scope)
   if value.type == "name" then
     if not scope[value.value] then
-      error(("name %q not found"):format(value.value), 0)
+      error {
+        message = ("name %q not found"):format(value.value), 0
+      }
     end
     return scope[value.value]
   end
@@ -94,16 +98,18 @@ local function eval(value, scope)
 
       local numArgs = #list - 1
       if (func.numArgs and numArgs ~= func.numArgs) or (func.minArgs and numArgs < func.minArgs) or (func.maxArgs and numArgs > func.maxArgs) then
-        error(("%s %q expected %s arguments, but got %d"):format(
-          calledType,
-          func.name,
-          func.numArgs and
-          ("exactly %d"):format(func.numArgs) or (
-            func.maxArgs and
-            ("betweed %d and %d"):format(func.minArgs, func.maxArgs) or
-            ("%d or more"):format(func.minArgs)
-          ),
-          numArgs), 0)
+        error {
+          message = ("%s %q expected %s arguments, but got %d"):format(
+            calledType,
+            func.name,
+            func.numArgs and
+            ("exactly %d"):format(func.numArgs) or (
+              func.maxArgs and
+              ("betweed %d and %d"):format(func.minArgs, func.maxArgs) or
+              ("%d or more"):format(func.minArgs)
+            ),
+            numArgs)
+        }
       end
 
       if calledType == "function" then
@@ -113,9 +119,10 @@ local function eval(value, scope)
           local valueType = getValueType(v)
           local expectedType = func.argTypes[i] or func.argTypes[#func.argTypes]
           if valueType ~= expectedType then
-            error(
-              ("argument #%d of %q expected to be of type %q, but got %q"):format(i, func.name, expectedType, valueType),
-              0)
+            error {
+              message = ("argument #%d of %q expected to be of type %q, but got %q"):format(
+                i, func.name, expectedType, valueType),
+            }
           end
           args[i] = v
         end
@@ -133,7 +140,9 @@ local function eval(value, scope)
         return func.func(args, scope)
       end
     else
-      error(("value of type %q cannot be called"):format(calledType), 0)
+      error {
+        message = ("value of type %q cannot be called"):format(calledType)
+      }
     end
   end
 
