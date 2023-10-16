@@ -41,6 +41,31 @@ local builtins = {
     end
   },
 
+  ["if"] = {
+    type = "form",
+    numArgs = 3,
+    func = function(args, scope)
+      local condition = eval(args[1], scope)
+      local t = getValueType(condition)
+      if t ~= "boolean" then
+        error(('"if" condition must be of type "boolean", but it was %q'):format(t))
+      end
+      local trueBody = eval(args[2], scope)
+      local trueT = getValueType(trueBody)
+      local falseBody = eval(args[3], scope)
+      local falseT = getValueType(falseBody)
+      if trueT ~= falseT then
+        error(('"if" return types must match (got %q and %q)'):format(trueT, falseT))
+      end
+      return {
+        type = "if",
+        condition = eval(args[1], scope),
+        trueBody = trueBody,
+        falseBody = falseBody
+      }
+    end
+  },
+
   compose = {
     type = "function",
     minArgs = 0,
@@ -157,6 +182,58 @@ for operator, func in pairs(mathOps) do
     end,
   }
 end
+
+local compOps = {
+  [">"] = function(a, b)
+    return a > b
+  end,
+  ["<"] = function(a, b)
+    return a < b
+  end,
+  [">="] = function(a, b)
+    return a >= b
+  end,
+  ["<="] = function(a, b)
+    return a <= b
+  end,
+  ["="] = function(a, b)
+    return a == b
+  end,
+}
+
+for operator, func in pairs(compOps) do
+  builtins[operator] = {
+    type = "function",
+    minArgs = 1,
+    argTypes = { "number" },
+    returnType = "boolean",
+    runtimeFunc = function(args)
+      for i = 1, #args - 1 do
+        if not func(args[i], args[i + 1]) then
+          return false
+        end
+      end
+      return true
+    end,
+  }
+end
+
+builtins["not="] = {
+  type = "function",
+  minArgs = 1,
+  argTypes = { "number" },
+  returnType = "boolean",
+  runtimeFunc = function(args)
+    for i = 1, #args - 1 do
+      for j = i + 1, #args do
+        if args[i] == args[j] then
+          return false
+        end
+      end
+    end
+    return true
+  end
+}
 
 for name, func in pairs(builtins) do
   if func.type == "function" or func.type == "form" then

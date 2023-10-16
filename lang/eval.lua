@@ -44,6 +44,14 @@ local function luaEvalRun(value, scope)
     return luaEvalRun(value.body, scope)
   end
 
+  if value.type == "if" then
+    if luaEvalRun(value.condition, scope) then
+      return luaEvalRun(value.trueBody, scope)
+    else
+      return luaEvalRun(value.falseBody, scope)
+    end
+  end
+
   error(("can't evaluate value of type %q"):format(value.type))
 end
 
@@ -57,6 +65,9 @@ local function getValueType(value)
   end
   if value.type == "bindingScope" then
     return getValueType(value.body)
+  end
+  if value.type == "if" then
+    return getValueType(value.trueBody)
   end
   return value.type
 end
