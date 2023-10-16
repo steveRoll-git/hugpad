@@ -10,18 +10,18 @@ local function luaEvalRun(value)
 
   if value.type == "call" then
     if value.func.dontEvaluateLuaArgs then
-      return value.func.func(value.args)
+      return value.func.runtimeFunc(value.args)
     else
       local evaledArgs = {}
       for i, v in ipairs(value.args) do
         evaledArgs[i] = luaEvalRun(v)
       end
-      return value.func.func(evaledArgs)
+      return value.func.runtimeFunc(evaledArgs)
     end
   end
 
   if value.type == "variable" then
-    return value.func()
+    return value.runtimeFunc()
   end
 
   if value.type == "list" then
