@@ -156,7 +156,7 @@ end
 function codeEditor:keypressed(key)
   self.editor:keypressed(key)
   self:updateScrollbars()
-  if key == "return" or key == "backspace" or (love.keyboard.isDown("lctrl", "rctrl") and (key == "x" or key == "c" or key == "v")) then
+  if key == "return" or key == "backspace" or key == "delete" or (love.keyboard.isDown("lctrl", "rctrl") and (key == "x" or key == "c" or key == "v")) then
     self:activity()
   end
 end
