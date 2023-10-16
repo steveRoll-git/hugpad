@@ -1,8 +1,46 @@
 local shallowCopy = require "util.shallowCopy"
 
-local luaEvalRun = require "lang.eval".luaEvalRun
+local eval = require "lang.eval".eval
+local getValueType = require "lang.eval".getValueType
 
 local builtins = {
+  let = {
+    type = "form",
+    numArgs = 2,
+    func = function(args, scope)
+      if args[1].type ~= "list" then
+        error('first parameter of "let" must be a list of variable declarations')
+      end
+
+      local varList = args[1].value
+      local newScope = shallowCopy(scope)
+      local bindings = {}
+
+      for _, var in ipairs(varList) do
+        if var.type ~= "list" or #var.value ~= 2 or var.value[1].type ~= "name" then
+          error('variable declarations in "let" must be lists with a name and value')
+        end
+        local varName = var.value[1].value
+        local varValue = eval(var.value[2], scope)
+        newScope[varName] = {
+          type = "binding",
+          name = varName,
+          varType = getValueType(varValue)
+        }
+        table.insert(bindings, {
+          name = varName,
+          value = varValue
+        })
+      end
+
+      return {
+        type = "bindingScope",
+        bindings = bindings,
+        body = eval(args[2], newScope)
+      }
+    end
+  },
+
   compose = {
     type = "function",
     minArgs = 0,
@@ -121,7 +159,7 @@ for operator, func in pairs(mathOps) do
 end
 
 for name, func in pairs(builtins) do
-  if func.type == "function" then
+  if func.type == "function" or func.type == "form" then
     func.name = name
   end
 end

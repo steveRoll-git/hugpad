@@ -1,5 +1,5 @@
 -- evaluates an expression and runs it
-local function luaEvalRun(value)
+local function luaEvalRun(value, scope)
   if value.type == "nil" then
     return nil
   end
@@ -14,7 +14,7 @@ local function luaEvalRun(value)
     else
       local evaledArgs = {}
       for i, v in ipairs(value.args) do
-        evaledArgs[i] = luaEvalRun(v)
+        evaledArgs[i] = luaEvalRun(v, scope)
       end
       return value.func.runtimeFunc(evaledArgs)
     end
@@ -24,8 +24,24 @@ local function luaEvalRun(value)
     return value.runtimeFunc()
   end
 
+  if value.type == "binding" then
+    return scope and scope[value.name]
+  end
+
   if value.type == "list" then
     return value.value
+  end
+
+  if value.type == "bindingScope" then
+    scope = scope or {}
+
+    for _, b in ipairs(value.bindings) do
+      scope[b.name] = luaEvalRun(b.value, scope)
+    end
+
+    -- there's no need to unset bindings, since that's caught by the previous stage anyway
+
+    return luaEvalRun(value.body, scope)
   end
 
   error(("can't evaluate value of type %q"):format(value.type))
@@ -36,8 +52,11 @@ local function getValueType(value)
   if value.type == "call" then
     return value.func.returnType
   end
-  if value.type == "variable" then
+  if value.type == "variable" or value.type == "binding" then
     return value.varType
+  end
+  if value.type == "bindingScope" then
+    return getValueType(value.body)
   end
   return value.type
 end
@@ -59,12 +78,13 @@ local function eval(value, scope)
 
     local calledValue = eval(list[1], scope)
     local calledType = getValueType(calledValue)
-    if calledType == "function" then
+    if calledType == "function" or calledType == "form" then
       local func = calledValue
 
       local numArgs = #list - 1
       if (func.numArgs and numArgs ~= func.numArgs) or (func.minArgs and numArgs < func.minArgs) or (func.maxArgs and numArgs > func.maxArgs) then
-        error(("function %q expected %s arguments, but got %d"):format(
+        error(("%s %q expected %s arguments, but got %d"):format(
+          calledType,
           func.name,
           func.numArgs and
           ("exactly %d"):format(func.numArgs) or (
@@ -75,23 +95,32 @@ local function eval(value, scope)
           numArgs), 0)
       end
 
-      local args = {}
-      for i = 1, numArgs do
-        local v = eval(list[i + 1], scope)
-        local valueType = getValueType(v)
-        local expectedType = func.argTypes[i] or func.argTypes[#func.argTypes]
-        if valueType ~= expectedType then
-          error(
-            ("argument #%d of %q expected to be of type %q, but got %q"):format(i, func.name, expectedType, valueType), 0)
+      if calledType == "function" then
+        local args = {}
+        for i = 1, numArgs do
+          local v = eval(list[i + 1], scope)
+          local valueType = getValueType(v)
+          local expectedType = func.argTypes[i] or func.argTypes[#func.argTypes]
+          if valueType ~= expectedType then
+            error(
+              ("argument #%d of %q expected to be of type %q, but got %q"):format(i, func.name, expectedType, valueType),
+              0)
+          end
+          args[i] = v
         end
-        args[i] = v
-      end
 
-      return {
-        type = "call",
-        func = func,
-        args = args
-      }
+        return {
+          type = "call",
+          func = func,
+          args = args
+        }
+      elseif calledType == "form" then
+        local args = {}
+        for i = 1, numArgs do
+          table.insert(args, list[i + 1])
+        end
+        return func.func(args, scope)
+      end
     else
       error(("value of type %q cannot be called"):format(calledType), 0)
     end
